@@ -1,0 +1,39 @@
+name: Frontend CI/CD (Vercel)
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run tests
+        run: npm test --if-present
+
+      - name: Build
+        run: npm run build --if-present
+
+      - name: Deploy to Vercel
+        env:
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          npm i -g vercel
+          # If this repository is linked in Vercel, this deploy will publish to production.
+          vercel deploy --prod --confirm --token $VERCEL_TOKEN
+
+# Required secrets for this workflow:
+# - VERCEL_TOKEN (create a Personal Token in Vercel and add as a repo secret)
+# Optional (if needed): VERCEL_ORG_ID, VERCEL_PROJECT_ID
